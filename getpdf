@@ -1,0 +1,38 @@
+#!/opt/rh/rh-python36/root/usr/bin/python
+import PyPDF2
+import sys
+
+
+fname = 'fname.pdf'
+
+# take filename from argv
+if len(sys.argv) == 2:
+  fname = sys.argv[1]
+
+# creating a pdf file object
+pf = open(fname, 'rb')
+print('using Filename: ', fname)
+
+# creating a pdf reader object
+pr = PyPDF2.PdfFileReader(pf)
+
+# printing num pages
+print(pr.numPages)
+
+def show_pdf(pr):
+
+  for i in range(pr.numPages):
+  #for i in range(3):
+    print('i = ',i)
+
+    ofs = "%03d_%s" % ( i,'file.dat')
+    ofile = open(ofs, 'w')
+    pg = pr.getPage(i)
+    ofile.write(pg.extractText())
+    #print(pg.extractText())
+    ofile.close()
+
+
+show_pdf(pr)
+
+
