@@ -1,0 +1,99 @@
+#!/usr/bin/python
+#import optuna
+#import numpy as np
+#from matplotlib import cm
+#import rhino3dm
+#import sys
+
+from os import listdir
+from os.path import isfile, join
+import csv
+import matplotlib.pyplot as plt
+import subprocess
+
+csv.register_dialect(\
+    'mydialect', delimiter = ',',quotechar = '"', doublequote = True, \
+    skipinitialspace = True, lineterminator = '\n' )
+
+mydir = '/home/flyntga/git/mcpf/data'
+
+files_in_dir = [ f for f in listdir(mydir) if isfile(join(mydir, f)) and  f != 'plotres' ]
+
+tnum = []
+tval = []
+
+for file in files_in_dir:
+  trial_num = file.strip('trial_data.csv')
+  print('trial # {}'.format(trial_num))
+
+  # read file to get objective value
+  cp = subprocess.run(["tail", "-n", "1", file ], stdout=subprocess.PIPE )
+  value = str(cp.stdout, 'utf-8').rstrip()
+  result = [x.strip() for x in value.split(',')][0]
+  result = float(result)
+
+  tnum.append(float(trial_num))
+  tval.append(float(result))
+
+imin = 0
+tmin = tval[imin]
+for i in range(len(tval)):
+  if tval[i] < tmin:
+    tmin = tval[i]
+    imin = i
+
+print('best trial is {} with value {}'.format(tnum[imin], tmin))
+
+p = input("Should we plot? [yes = 1]")
+
+if p == '1':
+  plt.xlabel('trial number')
+  plt.ylabel('objective value')
+  plt.title('Trial Performance')
+  plt.grid(True)
+  #plt.plot(tnum,tval,'r-')
+  plt.ylim(0,150)
+  plt.plot(tnum,tval, c="b", ls="None", marker='*')
+  plt.plot(tnum[imin],tmin, c="g", ls="None", marker=r'$\clubsuit$', markersize=10)
+  plt.show()
+else:
+  print(tnum)
+  print(tval)
+
+
+'''
+# make scatter plot
+fig, ax = plt.subplots()
+scatter = ax.scatter(x1, x2, c=z, s=z, cmap="Spectral")
+ax.set(xlabel='x1', ylabel='x2',title='Trial Results')
+ax.grid()
+plt.show()
+
+
+# make regular plots
+plt.subplot(4,1,1)
+plt.plot(x1, z, 'r.')
+plt.title('Trial Results')
+plt.ylabel('Z vs x1')
+plt.grid()
+
+plt.subplot(4,1,2)
+plt.plot(x2, z, 'b.')
+plt.xlabel('parameters')
+plt.ylabel('Z vs x2')
+plt.grid()
+
+plt.subplot(4,1,3)
+plt.plot(x3, z, 'g.')
+plt.xlabel('parameters')
+plt.ylabel('Z vs x3')
+plt.grid()
+
+plt.subplot(4,1,4)
+plt.plot(y2, z, 'm.')
+plt.xlabel('parameters')
+plt.ylabel('Z vs y2')
+plt.grid()
+
+plt.show()
+'''
