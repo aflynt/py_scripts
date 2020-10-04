@@ -5,28 +5,29 @@ import threading
 
 cv = threading.Condition()
 rs = runSet()
+svr = server()
 
 def fake_run(run):
-    for i in range(10):
-        astr = '.'*i
-        print(f'* [{run.number}] FAKERUN {run} [{astr}]')
-        time.sleep(1)
+    print(f'* [{run.number}] FAKERUN')
+    time.sleep(10)
 
 def run_sim(run):
 
     cv.acquire()
-    while not rs.machs_are_available(run.machines):
+    while not svr.machs_are_available(run.machines):
         time.sleep(5)
         cv.wait()
-    rs.reserve_machines(run.machines,run.number)
+    rstr = svr.reserve_machines(run.machines)
+    print(f'run #{run.number} reserving {rstr} -> {svr}')
     cv.notify()
     cv.release()
 
+    # FAKE WORK
     fake_run(run)
-    #print(f'run {num} working... {run}')
-    #time.sleep(10)
+
     cv.acquire()
-    rs.release_machines(run.machines)
+    rstr = svr.release_machines(run.machines)
+    print(f'run #{run.number} releasing {rstr} -> {svr}')
     cv.notify()
     cv.release()
     return f'done run #{run.number}'

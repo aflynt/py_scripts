@@ -1,13 +1,73 @@
 import os
 import pickle as p
 
+class server:
+    def __init__(self):
+        self.machs = [
+                machine("thor",60),
+                machine("c34",60),
+                machine("c33",60),
+                ]
+
+    def machs_are_available(self,chk_ms):
+        for cm in chk_ms:           # check machines
+            for mm in self.machs:   # my    machines
+                if cm.name == mm.name and mm.reserved != 0:
+                        return False
+        return True
+
+    def reserve_machines(self,chk_ms):
+        astr = ''
+        # reserve all machines in chk_ms
+        for mm in self.machs:   # my    machines
+            c = '_'
+            hit = False
+            for cm in chk_ms:           # check machines
+                if cm.name == mm.name:
+                    mm.reserved = 1 
+                    hit = True
+            if hit:
+                c = '*'
+            astr += f'{c}'
+        astr.rstrip()
+        return f'{astr}'
+
+    def release_machines(self,chk_ms):
+        astr = ''
+        # release all machines in chk_ms
+        for mm in self.machs:   # my    machines
+            c = '_'
+            hit = False
+            for cm in chk_ms:           # check machines
+                if cm.name == mm.name:
+                    mm.reserved = 0 
+                    hit = True
+            if hit:
+                c = '*'
+            astr += f'{c}'
+        astr.rstrip()
+        return f'{astr}'
+
+    def __str__(self):
+        astr = ''
+        for m in self.machs:
+            c = '_'
+            if m.reserved == 1:
+                c = '*'
+            astr += f'{c}'
+
+        astr.rstrip()
+        return f'{astr}'
+
+
 class machine:
     def __init__(self,name,cores):
         self.name = name
         self.cores = cores
+        self.reserved = 0
 
     def __str__(self):
-        return f'{self.name}:{self.cores}'
+        return f'{self.name}:{self.cores} r[{self.reserved}]'
 
 class run:
     def __init__(self,number,machines):
@@ -21,6 +81,22 @@ class run:
 
         astr.rstrip()
         return f'{self.number}:{astr}'
+
+    def print_machines(self):
+            astr = ''
+            for m in self.machines:
+                astr += f'{m}' + ' '
+    
+            astr.rstrip()
+            return f'{astr}'
+
+    def print_mnames(self):
+            astr = ''
+            for m in self.machines:
+                astr += f'{m.name}' + ' '
+    
+            astr.rstrip()
+            return f'{astr}'
 
 def get_run_nums(runs):
     nlist = []
@@ -40,7 +116,6 @@ class runSet():
         self.fname = "runFile"
         self.stamp = None
         self.runs = []
-        self.machs = {} # mach_name, run_num
 
     def watch(self):
         stamp = os.stat(self.fname).st_mtime
@@ -72,28 +147,6 @@ class runSet():
             if n in n_new:
                 r_new.append(run)
 
-        # add machine name keys to machine dict
-        for r in r_new:
-            for m in r.machines:
-                mname = m.name
-                self.machs[mname] = 0 
-    
         return r_new# }}}
 
-    def machs_are_available(self,machines):
-        for m in machines:
-            mname = m.name
-            if self.machs[mname] != 0:
-                return False
-        return True
-
-    def reserve_machines(self,machines,num):
-        for m in machines:
-            mname = m.name
-            self.machs[m] = num
-
-    def release_machines(self,machines):
-        for m in machines:
-            mname = m.name
-            self.machs[m] = 0
 
